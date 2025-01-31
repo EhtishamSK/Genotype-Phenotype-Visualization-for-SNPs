@@ -1,0 +1,1 @@
+This script processes GWAS results by extracting genotype data for a significant SNP, filtering homozygous individuals, and visualizing the genotype-phenotype relationship using boxplots. It helps assess the SNP’s effect on fruit width by comparing phenotype distributions across genotypes.
