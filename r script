@@ -1,0 +1,57 @@
+# SNP Genotype-Phenotype Analysis Script
+# This script extracts genotype data for a significant SNP from GWAS results, filters homozygous individuals, calculates sample sizes, and visualizes the genotype-phenotype relationship using boxplots.
+
+# Set working directory (modify this path as needed for your system)
+setwd("C:/Users/ehtis/OneDrive - New Mexico State University/SUNNY/Research Projects/Fruit Morphology Projects/GWAS/boxplots")
+
+# Skip the first 10 lines and read the file (HapMap format SNP dataset)
+hapmap_data <- read.table("GWASD128_KNNimp_beagle_imputed.hmp.txt", header = FALSE, skip = 10)
+
+# View the first few rows to check the structure of the dataset
+head(hapmap_data)
+
+# Extract the row corresponding to the SNP of interest
+snp_row <- hapmap_data[hapmap_data$V1 == "SCM002812.1_10016804", ]
+
+# Extract genotype columns (starting from V12, assuming first 11 columns contain metadata)
+genotypes <- snp_row[, 12:ncol(snp_row)]
+
+# Display the extracted genotype data
+genotypes
+
+# Save the genotype data to a CSV file for further analysis
+write.csv(genotypes, file = "genotypes_SNP6804.csv", row.names = FALSE)
+
+# Load the saved genotype data
+data <- read.csv("genotypes_SNP6804.csv")
+
+# Check the structure of the dataset to ensure correct import
+str(data)
+
+# Filter out heterozygous genotypes (assuming homozygous alleles are "AA" or "TT")
+library(dplyr)
+data_homozygous <- subset(data, Allele %in% c("AA", "TT"))
+
+# Calculate sample size per genotype
+data_homozygous %>%
+  group_by(Allele) %>%
+  summarise(n = n()) -> sample_size
+
+# Load ggplot2 library for visualization
+library(ggplot2)
+
+# Create boxplot with sample sizes displayed on the x-axis
+ggplot(data_homozygous, aes(x = Allele, y = pheno, fill = Allele)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.7) +  # Boxplot with transparency
+  geom_jitter(width = 0.2, alpha = 0.5, color = "black") +  # Jitter plot for individual points
+  labs(title = "SNP: SCM002812.1_10016804",
+       x = "Genotype",
+       y = "Width Mid-height (WMH, cm)") +
+  scale_fill_brewer(palette = "Set2") +  # Set color palette
+  theme_minimal() +  # Apply minimal theme
+  theme(text = element_text(size = 12),  # Adjust text size
+        plot.title = element_text(hjust = 0.5)) +  # Center align the title
+  scale_x_discrete(labels = paste0(sample_size$Allele, "\n(n=", sample_size$n, ")"))  # Add sample size to x-axis labels
+
+# Save the plot as a high-resolution PNG file
+ggsave("SCM002812.1_10016804.png", width = 8, height = 6, dpi = 600, bg = "white")
