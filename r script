@@ -52,7 +52,7 @@ library(ggplot2)
 ggplot(data_homozygous, aes(x = Allele, y = pheno, fill = Allele)) +
   geom_boxplot(outlier.shape = NA, alpha = 0.7) +  
   geom_jitter(width = 0.2, alpha = 0.5, color = "black") +  
-  labs(title = paste("SNP: SCM002822.1_178685319", "\n\n", significance_label),  # Added extra newline
+  labs(title = paste("SNP: SCM002812.1_10016804", "\n\n", significance_label),  # Added extra newline
        x = "Genotype",
        y = "Fruit Area (ARA, cm)") +
   scale_fill_brewer(palette = "Set2") +  
