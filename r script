@@ -30,28 +30,37 @@ str(data)
 
 # Filter out heterozygous genotypes (assuming homozygous alleles are "AA" or "TT")
 library(dplyr)
-data_homozygous <- subset(data, Allele %in% c("AA", "TT"))
 
-# Calculate sample size per genotype
 data_homozygous %>%
   group_by(Allele) %>%
   summarise(n = n()) -> sample_size
 
-# Load ggplot2 library for visualization
+# Perform a t-test between the two homozygous genotypes
+t_test_result <- t.test(pheno ~ Allele, data = data_homozygous)
+
+# Determine significance level
+p_value <- t_test_result$p.value
+significance_label <- ifelse(p_value < 0.001, "P < 0.001 ***",
+                             ifelse(p_value < 0.01, "P < 0.01 **",
+                                    ifelse(p_value < 0.05, "P < 0.05 *", "P ≥ 0.05 (ns)")))
+
+# Print the t-test results
+print(t_test_result)
+
+# Create boxplot with significance annotation
 library(ggplot2)
-
-# Create boxplot with sample sizes displayed on the x-axis
 ggplot(data_homozygous, aes(x = Allele, y = pheno, fill = Allele)) +
-  geom_boxplot(outlier.shape = NA, alpha = 0.7) +  # Boxplot with transparency
-  geom_jitter(width = 0.2, alpha = 0.5, color = "black") +  # Jitter plot for individual points
-  labs(title = "SNP: SCM002812.1_10016804",
+  geom_boxplot(outlier.shape = NA, alpha = 0.7) +  
+  geom_jitter(width = 0.2, alpha = 0.5, color = "black") +  
+  labs(title = paste("SNP: SCM002822.1_178685319", "\n\n", significance_label),  # Added extra newline
        x = "Genotype",
-       y = "Width Mid-height (WMH, cm)") +
-  scale_fill_brewer(palette = "Set2") +  # Set color palette
-  theme_minimal() +  # Apply minimal theme
-  theme(text = element_text(size = 12),  # Adjust text size
-        plot.title = element_text(hjust = 0.5)) +  # Center align the title
-  scale_x_discrete(labels = paste0(sample_size$Allele, "\n(n=", sample_size$n, ")"))  # Add sample size to x-axis labels
+       y = "Fruit Area (ARA, cm)") +
+  scale_fill_brewer(palette = "Set2") +  
+  theme_minimal() +
+  theme(text = element_text(size = 12),  
+        plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = paste0(sample_size$Allele, "\n(n=", sample_size$n, ")"))
 
-# Save the plot as a high-resolution PNG file
-ggsave("SCM002812.1_10016804.png", width = 8, height = 6, dpi = 600, bg = "white")
+
+ggsave("SCM002822.1_178685319.png", width = 8, height = 6, dpi = 600, bg = "white")
+
